@@ -1,38 +1,56 @@
 const express = require("express");
-
-// Start MongoDB Atlas ********
-const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-// End MongoDB Atlas ********
-
 const app = express();
-
-// Start MongoDB Atlas ********
-app.use(bodyParser.urlencoded({extended: true}));
-
-const mongooseUri = "mongodb+srv://testMongoDBUserName:8L4kkR8KszHZTI7S@cluster0.fei8p8f.mongodb.net/notesDB"
-mongoose.connect(mongooseUri, {useNewUrlParser: true}, {useUnifiedTopology: true})
-const notesSchema = {
-	title: String,
-	content: String
-}
-const Note = mongoose.model("Note", notesSchema);
-// End MongoDB Atlas ********
-
 app.use(express.static(__dirname + '/client'))
 
 // Start MongoDB Atlas ********
-app.post("/mongo-create", function(req, res){
-	let newNote = new Note({
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
+
+const mongoose = require("mongoose");
+
+
+
+const mongooseUri = "mongodb+srv://testMongoDBUserName:8L4kkR8KszHZTI7S@cluster0.fei8p8f.mongodb.net/movieDatabase"
+mongoose.connect(mongooseUri, {useNewUrlParser: true}, {useUnifiedTopology: true})
+const movieSchema = {
+	title: String,
+	comments: String
+}
+const Movie = mongoose.model("movie", movieSchema);
+
+// Create route called from create.html
+app.post("/create", function(req, res){
+	let newNote = new Movie({
 		title: req.body.title,
-		content: req.body.content
+		comments: req.body.comments
 	})
 	
 	newNote.save();
-
-	res.type('text/plain')
-	res.send('Saved title='+req.body.title+' and content='+req.body.content+' port='+port)
+	res.redirect("/");
 })
+
+const renderNotes = (notesArray) => {
+	let text = "Movies Collection:\n\n";
+	notesArray.forEach((note)=>{
+		text += "Title: " + note.title  + "\n";
+		text += "comments: " + note.title  + "\n";
+		text += "ID:" + note._id + "\n\n";
+	})
+	text += "Total Count: " + notesArray.length;
+	return text
+}
+
+app.get("/read", function(request, response) {
+	Movie.find({}).then(notes => { 
+		response.type('text/plain');
+		response.send(renderNotes(notes));
+	})
+})
+
+// Todo: Implement your own MongoDB Atlas Organization, Project, Database Cluster, Database, and Collection.
+// Todo: Implement and test the Update and Delete functionCRUD.
+
 // End MongoDB Atlas ********
 
 const port = process.env.PORT || 3000
